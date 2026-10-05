@@ -1,0 +1,49 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>即時銷售資料儀表板</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>資料庫即時銷售圖表</h1>
+    <p>按下 F5 重新整理，即可抓取 MySQL 最新資料。</p>
+    <canvas id="myChart" width="800" height="400"></canvas>
+    
+    <script>
+        // ！！！請將下方網址替換為你在步驟 2 取得的 Google Apps Script URL ！！！
+        const apiUrl = 'https://script.google.com/macros/s/AKfycby9pwxg14CGefxzUS3BP87iFteewmN-u2gurjwcp0709IUK_U6wTogUE_N7AKtdX9OTSQ/exec';
+
+        async function fetchData() {
+            try {
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+                
+                // 假設回傳的欄位有 'Category' 和 'Sales'，請依實際欄位替換
+                const labels = data.map(item => item.Category);
+                const values = data.map(item => parseFloat(item.Sales));
+
+                const ctx = document.getElementById('myChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar', // 也可以改成 'pie', 'line' 等常見圖表
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: '銷售額',
+                            data: values,
+                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: { responsive: false }
+                });
+            } catch (error) {
+                console.error('抓取資料失敗:', error);
+            }
+        }
+        window.onload = fetchData;
+    </script>
+</body>
+</html>
