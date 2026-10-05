@@ -1,0 +1,60 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>即時銷售資料儀表板</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>資料庫即時銷售圖表</h1>
+    <p>按下 F5 重新整理，即可抓取 MySQL 最新資料。</p>
+    <canvas id="myChart" width="800" height="400"></canvas>
+    
+<script>
+        // 你的 Google Apps Script 網址
+        const apiUrl = 'https://script.google.com/macros/s/AKfycbzRrt6d1-ES285w5wZh7PmyBR6dd7AdgfWU_-NsW1dkpBEWObwykg8ZNwRWRQWpN6Q9Kw/exec';
+
+        async function fetchData() {
+            try {
+                // 使用 text() 接收後再 parse，繞過 CORS
+                const response = await fetch(apiUrl);
+                const text = await response.text();
+                const data = JSON.parse(text);
+                
+                const groupedData = data.reduce((acc, curr) => {
+                    const key = curr['category']; 
+                    const value = parseFloat(curr['quantity'] || 0);
+                    if (key) {
+                        acc[key] = (acc[key] || 0) + value;
+                    }
+                    return acc;
+                }, {});
+
+                const labels = Object.keys(groupedData);
+                const values = Object.values(groupedData);
+
+                const ctx = document.getElementById('myChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: '各類別銷售數量',
+                            data: values,
+                            backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: { responsive: true }
+                });
+            } catch (error) {
+                console.error('抓取資料失敗:', error);
+                alert('無法從 API 抓取資料，請檢查主控台。');
+            }
+        }
+        window.onload = fetchData;
+    </script>
+</body>
+</html>
