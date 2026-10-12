@@ -54,6 +54,54 @@
             .catch(error => {
                 console.error('❌ 抓取或畫圖失敗:', error);
             });
+    <script>
+        // 👇👇👇 這裡一樣填入你剛剛那個成功的 GAS API 網址
+        const apiUrl = 'https://script.google.com/macros/s/AKfycbwkUULgzVI5B-sCnC8tgMgQQB0A-_Q6_aye9j_EDDAbEihg87TOA8QPhtsLt-ooWZ0Q3g/exec';
+
+        console.log("開始向 API 請求資料...");
+
+        fetch(apiUrl)
+            .then(response => {
+                if (!response.ok) throw new Error("網路連線發生錯誤");
+                return response.json();
+            })
+            .then(data => {
+                // 1. 將相同商品的銷售數量進行加總 (分類統計)
+                const salesSummary = {};
+                data.forEach(item => {
+                    const name = item.product_name;
+                    const qty = parseInt(item.quantity) || 0;
+                    
+                    if (salesSummary[name]) {
+                        salesSummary[name] += qty; // 如果商品已存在，數量累加
+                    } else {
+                        salesSummary[name] = qty;  // 如果是新商品，建立第一筆數量
+                    }
+                });
+
+                // 2. 提取出 X 軸 (商品名稱) 和 Y 軸 (總數量) 給圖表使用
+                const labels = Object.keys(salesSummary);
+                const quantities = Object.values(salesSummary);
+
+                // 3. 畫出漂亮的長條圖
+                const ctx = document.getElementById('myChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: '總銷售數量',
+                            data: quantities,
+                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        }]
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('❌ 抓取或畫圖失敗:', error);
+            });
     </script>
 </body>
 </html>
